@@ -17,7 +17,9 @@ class App extends Component {
                 {name:'Semion G.', salary: 4600, increase: true, rice: false, id: 2},
                 {name:'Mick D.', salary: 2100, increase: false, rice: false, id: 3},
                 {name:'Garry N.', salary: 1700, increase: false, rice: false, id: 4},
-            ]
+            ],
+            tern: '',
+            filter: 'all'
         }
         this.maxId = 5;
     }
@@ -61,10 +63,54 @@ class App extends Component {
         }))
     }
 
+    searchEmp = (items, tern) => {
+        if (tern.length === 0){
+            return items;
+        }
+        return items.filter(item => {
+            return item.name.indexOf(tern) > -1;
+        })
+    }
+
+    onUpdateSearch = (tern) => {
+        this.setState({tern});
+    }
+
+    filterPost = (items, filter) => {
+        switch (filter) {
+            case 'rice':
+                return items.filter(item => item.rice);
+            case 'multi':
+                return items.filter(item => item.salary > 1000);
+            case 'increase':
+                return items.filter(item => item.increase);
+            default:
+                return items;
+        }
+    }
+
+    onFilterSelect = (filter) => {
+        this.setState({filter});
+    }
+
+    onSalaryChenge = (id, salary) => {
+        this.setState(({data}) =>({
+            data: data.map(item => {
+                if(item.id === id){
+                    return {...item, salary};
+                }
+                return item;
+            })
+        }))
+    }
+
+
     render() {
+        const {data, tern, filter} = this.state;
         const allEmpl = this.state.data.length;
         const incr = this.state.data.filter(item => item.increase).length;
         const riced = this.state.data.filter(item => item.rice).length;
+        const visibleData = this.filterPost(this.searchEmp(data, tern), filter);
 
         return (
         <div className='app'>
@@ -73,13 +119,16 @@ class App extends Component {
                 incr={incr}
                 riced={riced}/>
             <div className="search-panel">
-                <SearchPanel/>
-                <AppFilter/>   
+                <SearchPanel
+                    onUpdateSearch={this.onUpdateSearch}/>
+                <AppFilter
+                    filter={filter} onFilterSelect={this.onFilterSelect}/>   
             </div>
             <EmployeesList 
-                data={this.state.data}
+                data={visibleData}
                 onDelete={this.deletItem}
-                onToggleProp={this.onToggleProp}/>
+                onToggleProp={this.onToggleProp}
+                onSalaryChenge={this.onSalaryChenge}/>
             <EmployeesAddForm
                 onAdd={this.addItem}/>
         </div>
